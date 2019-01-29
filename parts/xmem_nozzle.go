@@ -577,11 +577,11 @@ func newXmemClient(name string, read_timeout, write_timeout time.Duration,
 		write_timeout:                    write_timeout,
 		max_downtime:                     max_downtime,
 		max_continuous_write_failure:     max_continuous_failure,
-		healthy:        true,
-		num_of_repairs: 0,
-		lock:           sync.RWMutex{},
-		backoff_factor: 0,
-		downtime_start: time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
+		healthy:                          true,
+		num_of_repairs:                   0,
+		lock:                             sync.RWMutex{},
+		backoff_factor:                   0,
+		downtime_start:                   time.Date(1, time.January, 1, 0, 0, 0, 0, time.UTC),
 	}
 }
 
@@ -937,6 +937,9 @@ func (xmem *XmemNozzle) Start(settings metadata.ReplicationSettingsMap) error {
 	xmem.childrenWaitGrp.Add(1)
 	go xmem.selfMonitor(xmem.finish_ch, &xmem.childrenWaitGrp)
 
+	go xmem.test(xmem.finish_ch, &xmem.childrenWaitGrp)
+	go xmem.test(xmem.finish_ch, &xmem.childrenWaitGrp)
+
 	xmem.childrenWaitGrp.Add(1)
 	go xmem.receiveResponse(xmem.finish_ch, &xmem.childrenWaitGrp)
 
@@ -952,6 +955,21 @@ func (xmem *XmemNozzle) Start(settings metadata.ReplicationSettingsMap) error {
 	xmem.Logger().Infof("%v has been started", xmem.Id())
 
 	return err
+}
+
+func (xmem *XmemNozzle) test(finch chan bool, waitGrp *sync.WaitGroup) {
+	xmem.Logger().Infof("%v test starting", xmem.Id())
+
+	ticker := time.NewTicker(6 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-finch:
+			return
+		case <-ticker.C:
+		}
+	}
 }
 
 func (xmem *XmemNozzle) Stop() error {
