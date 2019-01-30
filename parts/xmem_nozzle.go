@@ -938,7 +938,7 @@ func (xmem *XmemNozzle) Start(settings metadata.ReplicationSettingsMap) error {
 	go xmem.selfMonitor(xmem.finish_ch, &xmem.childrenWaitGrp)
 
 	go xmem.test(xmem.finish_ch, &xmem.childrenWaitGrp)
-	go xmem.test(xmem.finish_ch, &xmem.childrenWaitGrp)
+	//go xmem.test(xmem.finish_ch, &xmem.childrenWaitGrp)
 
 	xmem.childrenWaitGrp.Add(1)
 	go xmem.receiveResponse(xmem.finish_ch, &xmem.childrenWaitGrp)
